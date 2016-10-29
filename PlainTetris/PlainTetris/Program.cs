@@ -32,6 +32,10 @@ namespace PlainTetris
 
             mainForm.KeyDown += (s, k) =>
             {
+                if (k.KeyCode == Keys.Escape)
+                {
+                    run = false;
+                }
                 if (k.KeyCode == Keys.Up)
                 {
                     tetrisSimulation.SimulationInput(TetrisInput.Up);

@@ -8,7 +8,7 @@ namespace PlainTetris
         public static List<uint[,]> CreateRandomPiece(out int cTop, out int cLeft)
         {
             var rnd = new Random();
-            var num = rnd.Next(0, 6);
+            var num = rnd.Next(0, 7);
 
             switch (num)
             {

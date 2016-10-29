@@ -173,6 +173,21 @@ namespace PlainTetris
 
             _controlledBlocks = _optionalConfigurations[0];
 
+            switch (CheckConfiguration(_controlledBlocks, _cLeft, _cTop))
+            {
+                case CheckResult.Available:
+                    break;
+                case CheckResult.Blocked:
+                    GameOver = true;
+                    return;
+                case CheckResult.OutOfBoundsLeft:
+                    break;
+                case CheckResult.OutOfBoundsRight:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
             _pieceActive = true;
             HasStateChangedSinceRender = true;
         }
