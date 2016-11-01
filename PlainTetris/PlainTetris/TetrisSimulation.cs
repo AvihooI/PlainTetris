@@ -403,8 +403,6 @@ namespace PlainTetris
 
         private void Rotate()
         {
-            if (!_simulationRuns) return;
-
             if (_optionalConfigurations.Count < 2)
                 return;
 
