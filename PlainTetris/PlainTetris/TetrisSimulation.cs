@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Security.Cryptography.X509Certificates;
@@ -11,6 +12,7 @@ namespace PlainTetris
     {
         //Configurations (for rotation)
         private List<uint[,]> _optionalConfigurations;
+        private List<uint[,]> _nextConfigurations;
         private int _configurationIndex;
 
         //Controlled piece
@@ -24,11 +26,14 @@ namespace PlainTetris
         private Timer _simulationTimer;
         private bool _pieceActive = false;
         private bool _simulationRuns;
+        private readonly uint _width;
+        private readonly uint _height;
 
         public bool GameOver { get; private set; }
 
         //Something changed since render
         public bool HasStateChangedSinceRender { get; private set; } = true;
+        public bool HasNextPieceStateChangedSinceRender { get; private set; } = true;
 
         //Simulation
 
@@ -37,19 +42,47 @@ namespace PlainTetris
             return Color.FromArgb(color.A, color.R / 2, color.G / 2, color.B / 2);
         }
 
+        //Next piece render blocks
+        public TetrisRenderBlock[,] GetNextPieceRenderBlocks()
+        {
+            HasNextPieceStateChangedSinceRender = false;
+
+            var result = new TetrisRenderBlock[4, 4];
+
+            if (_nextConfigurations == null)
+                return result;
+
+            for (var i = 0; i < 4; i++)
+            {
+                for (var j = 0; j < 4; j++)
+                {
+                    if (_nextConfigurations[0][i, j] == 0) continue;
+
+                    result[i, j].Color = NumberToColor(_nextConfigurations[0][i, j]);
+                    result[i, j].Active = true;
+                }
+            }
+
+
+            return result;
+        }
+
+
+
+        //World render blocks
         public TetrisRenderBlock[,] GetRenderBlocks()
         {
             HasStateChangedSinceRender = false;
 
-            var result = new TetrisRenderBlock[12, 16];
+            var result = new TetrisRenderBlock[_width, _height];
 
-            for (var i = 0; i < 12; i++)
+            for (var i = 0; i < _width; i++)
             {
-                for (var j = 0; j < 16; j++)
+                for (var j = 0; j < _height; j++)
                 {
                     if (_landedBlocks[i, j] != 0)
                     {
-                        result[i, j].Color = Dim(NumberToColor(_landedBlocks[i,j]));
+                        result[i, j].Color = Dim(NumberToColor(_landedBlocks[i, j]));
                         result[i, j].Active = true;
                     }
                     else
@@ -99,17 +132,20 @@ namespace PlainTetris
                     return Color.LightSlateGray;
 
                 default:
-                    throw  new ArgumentOutOfRangeException();
+                    throw new ArgumentOutOfRangeException();
             }
         }
 
-        public TetrisSimulation()
+        public TetrisSimulation(uint width, uint height)
         {
+            _width = width;
+            _height = height;
             _configurationIndex = 0;
             _optionalConfigurations = new List<uint[,]>();
             _controlledBlocks = new uint[4, 4];
-            _landedBlocks = new uint[12, 16];
+            _landedBlocks = new uint[_width, _height];
             _pieceActive = false;
+            
         }
 
         private CheckResult CheckConfiguration(uint[,] configuration, int cLeft, int cTop)
@@ -127,9 +163,9 @@ namespace PlainTetris
 
                     if (x < 0)
                         result = CheckResult.OutOfBoundsLeft;
-                    else if (x >= 12)
+                    else if (x >= _width)
                         result = CheckResult.OutOfBoundsRight;
-                    else if (y < 0 || y >= 16 || _landedBlocks[x, y] != 0)
+                    else if (y < 0 || y >= _height || _landedBlocks[x, y] != 0)
                     {
                         return CheckResult.Blocked;
                     }
@@ -162,16 +198,38 @@ namespace PlainTetris
             if (GameOver)
                 return;
 
-            int cTop;
-            int cLeft;
-            var createdPiece = PieceCreator.CreateRandomPiece(out cTop, out cLeft);
+            HasNextPieceStateChangedSinceRender = true;
 
-            _optionalConfigurations = createdPiece;
-            _configurationIndex = 0;
-            _cTop = cTop;
-            _cLeft = cLeft;
+            if (_nextConfigurations == null)
+                _nextConfigurations = PieceCreator.CreateRandomPiece();
+
+            _optionalConfigurations = _nextConfigurations;
+
+            _nextConfigurations = PieceCreator.CreateRandomPiece();
 
             _controlledBlocks = _optionalConfigurations[0];
+
+            _configurationIndex = 0;
+
+            var lowestI = 4;
+            var lowestJ = 4;
+
+            for (var i = 0; i < 4; i++)
+            {
+                for (var j = 0; j < 4; j++)
+                {
+                    if (_controlledBlocks[i, j] == 0) continue;
+
+                    if (lowestI > i)
+                        lowestI = i;
+
+                    if (lowestJ > j)
+                        lowestJ = j;
+                }
+            }
+
+            _cTop = 0 - lowestJ;
+            _cLeft = 5 - lowestI;
 
             switch (CheckConfiguration(_controlledBlocks, _cLeft, _cTop))
             {
@@ -194,11 +252,11 @@ namespace PlainTetris
 
         private void HandleFalling()
         {
-            for (var y = 14; y >= 0; y--)
+            for (var y = (int)_height-1; y >= 0; y--)
             {
                 var lineIsClear = true;
 
-                for (var x = 0; x < 12; x++)
+                for (var x = 0; x < _width; x++)
                 {
                     if (_landedBlocks[x, y] == 0) continue;
 
@@ -216,11 +274,11 @@ namespace PlainTetris
 
         private void Reduce()
         {
-            for (var y = 14; y >= 0; y--)
+            for (var y = (int)_height-1; y >= 0; y--)
             {
                 var lineIsFull = true;
 
-                for (var x = 0; x < 12; x++)
+                for (var x = 0; x < _width; x++)
                 {
                     if (_landedBlocks[x, y] != 0) continue;
 
@@ -240,7 +298,7 @@ namespace PlainTetris
         }
         private void FallLine(int lineY)
         {
-            for (var x = 0; x < 12; x++)
+            for (var x = 0; x < _width; x++)
             {
                 for (var y = lineY - 1; y >= 0; y--)
                 {
@@ -253,7 +311,7 @@ namespace PlainTetris
         }
         private void ReduceLine(int lineY)
         {
-            for (var x = 0; x < 12; x++)
+            for (var x = 0; x < _width; x++)
             {
                 _landedBlocks[x, lineY] = 0;
             }
@@ -301,7 +359,6 @@ namespace PlainTetris
             }
         }
 
-        //SpawnTimer/Pause
         private void Enter()
         {
             if (GameOver)
@@ -309,12 +366,12 @@ namespace PlainTetris
                 _configurationIndex = 0;
                 _optionalConfigurations = new List<uint[,]>();
                 _controlledBlocks = new uint[4, 4];
-                _landedBlocks = new uint[12, 16];
+                _landedBlocks = new uint[_width, _height];
                 _pieceActive = false;
                 GameOver = false;
             }
 
-            _simulationRuns = (_simulationRuns != true);   
+            _simulationRuns = (_simulationRuns != true);
 
             if (_simulationRuns)
                 SpawnTimer();
@@ -326,7 +383,7 @@ namespace PlainTetris
         {
             if (!_simulationRuns) return;
 
-            while (PerformOneStep() == StepResult.StepMade);
+            while (PerformOneStep() == StepResult.StepMade) ;
         }
 
         //Timer
@@ -406,14 +463,14 @@ namespace PlainTetris
             if (_optionalConfigurations.Count < 2)
                 return;
 
-            var nextConfigration = _optionalConfigurations[(_configurationIndex + 1)%_optionalConfigurations.Count];
+            var nextConfigration = _optionalConfigurations[(_configurationIndex + 1) % _optionalConfigurations.Count];
 
             var checkResult = CheckConfiguration(nextConfigration, _cLeft, _cTop);
 
             switch (checkResult)
             {
                 case CheckResult.Available:
-                    _configurationIndex = (_configurationIndex + 1)%_optionalConfigurations.Count;
+                    _configurationIndex = (_configurationIndex + 1) % _optionalConfigurations.Count;
                     break;
                 case CheckResult.Blocked:
                     break;
@@ -501,7 +558,7 @@ namespace PlainTetris
                     var nextX = _cLeft + i;
                     var nextY = _cTop + j + 1;
 
-                    if (nextY < 15 && _landedBlocks[nextX, nextY] == 0) continue;
+                    if (nextY < _height && _landedBlocks[nextX, nextY] == 0) continue;
 
                     result = _cTop == 0 ? StepResult.GameOver : StepResult.Landed;
                     LandPiece();

@@ -5,7 +5,7 @@ namespace PlainTetris
 {
     internal static class PieceCreator
     {
-        public static List<uint[,]> CreateRandomPiece(out int cTop, out int cLeft)
+        public static List<uint[,]> CreateRandomPiece()
         {
             var rnd = new Random();
             var num = rnd.Next(0, 7);
@@ -13,19 +13,19 @@ namespace PlainTetris
             switch (num)
             {
                 case 0:
-                    return CreateO(out cTop, out cLeft);
+                    return CreateO();
                 case 1:
-                    return CreateI(out cTop, out cLeft);
+                    return CreateI();
                 case 2:
-                    return CreateZ(out cTop, out cLeft);
+                    return CreateZ();
                 case 3:
-                    return CreateS(out cTop, out cLeft);
+                    return CreateS();
                 case 4:
-                    return CreateL(out cTop, out cLeft);
+                    return CreateL();
                 case 5:
-                    return CreateJ(out cTop, out cLeft);
+                    return CreateJ();
                 case 6:
-                    return CreateT(out cTop, out cLeft);
+                    return CreateT();
                 default:
                     throw new ArgumentOutOfRangeException();
 
@@ -33,7 +33,7 @@ namespace PlainTetris
 
         }
 
-        public static List<uint[,]> CreateO(out int cTop, out int cLeft)
+        public static List<uint[,]> CreateO()
         {
             var optionalConfigurations = new List<uint[,]>();
 
@@ -47,11 +47,9 @@ namespace PlainTetris
 
             optionalConfigurations.Add(normalBlock);
 
-            cTop = -1;
-            cLeft = 3;
             return optionalConfigurations;
         }
-        public static List<uint[,]> CreateI(out int cTop, out int cLeft)
+        public static List<uint[,]> CreateI()
         {
             var optionalConfigurations = new List<uint[,]>();
 
@@ -75,11 +73,9 @@ namespace PlainTetris
             optionalConfigurations.Add(normalBlock);
             optionalConfigurations.Add(secondConfiguration);
 
-            cTop = 0;
-            cLeft = 3;
             return optionalConfigurations;
         }
-        public static List<uint[,]> CreateZ(out int cTop, out int cLeft)
+        public static List<uint[,]> CreateZ()
         {
             var optionalConfigurations = new List<uint[,]>();
 
@@ -103,11 +99,9 @@ namespace PlainTetris
             optionalConfigurations.Add(normalBlock);
             optionalConfigurations.Add(secondConfiguration);
 
-            cTop = -1;
-            cLeft = 3;
             return optionalConfigurations;
         }
-        public static List<uint[,]> CreateS(out int cTop, out int cLeft)
+        public static List<uint[,]> CreateS()
         {
             var optionalConfigurations = new List<uint[,]>();
 
@@ -131,11 +125,9 @@ namespace PlainTetris
             optionalConfigurations.Add(normalBlock);
             optionalConfigurations.Add(secondConfiguration);
 
-            cTop = -1;
-            cLeft = 3;
             return optionalConfigurations;
         }
-        public static List<uint[,]> CreateL(out int cTop, out int cLeft)
+        public static List<uint[,]> CreateL()
         {
             var optionalConfigurations = new List<uint[,]>();
 
@@ -178,11 +170,9 @@ namespace PlainTetris
             optionalConfigurations.Add(thirdConfiguration);
             optionalConfigurations.Add(fourthConfiguration);
 
-            cTop = 0;
-            cLeft = 3;
             return optionalConfigurations;
         }
-        public static List<uint[,]> CreateJ(out int cTop, out int cLeft)
+        public static List<uint[,]> CreateJ()
         {
             var optionalConfigurations = new List<uint[,]>();
 
@@ -225,11 +215,9 @@ namespace PlainTetris
             optionalConfigurations.Add(thirdConfiguration);
             optionalConfigurations.Add(fourthConfiguration);
 
-            cTop = 0;
-            cLeft = 3;
             return optionalConfigurations;
         }
-        public static List<uint[,]> CreateT(out int cTop, out int cLeft)
+        public static List<uint[,]> CreateT()
         {
             var optionalConfigurations = new List<uint[,]>();
 
@@ -272,8 +260,6 @@ namespace PlainTetris
             optionalConfigurations.Add(thirdConfiguration);
             optionalConfigurations.Add(fourthConfiguration);
 
-            cTop = -2;
-            cLeft = 3;
             return optionalConfigurations;
         }
     }

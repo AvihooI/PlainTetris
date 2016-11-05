@@ -1,0 +1,16 @@
+﻿Existing:
+Tetris pieces in a queue [X]
+
+Near time:
+Score system [ ]
+Timer speed up [ ]
+
+Later:
+Menu [ ]
+Configurable things [ ]
+
+Much later:
+Sound [ ]
+Music [ ]
+
+

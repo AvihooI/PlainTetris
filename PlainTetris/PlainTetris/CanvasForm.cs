@@ -6,10 +6,10 @@ namespace PlainTetris
     {
         public CanvasForm()
         {
-            Width = 500;
-            Height = 640;
+            Width = 580;
+            Height = 680;
             DoubleBuffered = true;
-            FormBorderStyle = FormBorderStyle.FixedSingle;
+            FormBorderStyle = FormBorderStyle.None;
             MaximizeBox = false;
         }
     }

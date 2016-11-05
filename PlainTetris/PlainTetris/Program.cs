@@ -28,7 +28,7 @@ namespace PlainTetris
             var context = BufferedGraphicsManager.Current;
             context.MaximumBuffer = new Size(mainForm.Width, mainForm.Height);
 
-            var tetrisSimulation = new TetrisSimulation();
+            var tetrisSimulation = new TetrisSimulation(12,16);
 
             mainForm.KeyDown += (s, k) =>
             {
@@ -68,6 +68,7 @@ namespace PlainTetris
             };
 
             var renderBlocks = tetrisSimulation.GetRenderBlocks();
+            var renderNextPieceRenderBlocks = tetrisSimulation.GetNextPieceRenderBlocks();
             while (run)
             {
                 
@@ -78,7 +79,11 @@ namespace PlainTetris
                     {
                         renderBlocks = tetrisSimulation.GetRenderBlocks();
                     }
-                    renderer.Draw(bgfx.Graphics, renderBlocks, tetrisSimulation.GameOver);
+                    if (tetrisSimulation.HasNextPieceStateChangedSinceRender)
+                    {
+                        renderNextPieceRenderBlocks = tetrisSimulation.GetNextPieceRenderBlocks();
+                    }
+                    renderer.Draw(bgfx.Graphics, renderBlocks, new Rectangle(0,0,480,640), renderNextPieceRenderBlocks, new Rectangle(480,0,100,100),  tetrisSimulation.GameOver);
                     bgfx.Render();
                     bgfx.Graphics.Dispose();
                 }

@@ -10,10 +10,9 @@ namespace PlainTetris
         private Timer _fpsTimer;
         private readonly Font _fpsFont;
         private readonly SolidBrush _fpsBrush;
-        private TetrisRenderBlock[,] _tetrisRenderBlocks;
         private int _blockSize;
-        private Font _gameOverFont;
-        private Brush _gameOverBrush;
+        private readonly Font _gameOverFont;
+        private readonly Brush _gameOverBrush;
 
         public Renderer(int blockSize)
         {
@@ -33,23 +32,16 @@ namespace PlainTetris
             _currentFps = 0;
         }
 
-        public void Draw(Graphics gfx, TetrisRenderBlock[,] tetrisRenderBlocks, bool gameOver)
+        public void Draw(Graphics gfx, TetrisRenderBlock[,] tetrisRenderBlocks, Rectangle mainRect, TetrisRenderBlock[,] nextPieceRenderBlocks, Rectangle nextPieceRect, bool gameOver)
         {
+            //Clear the screen
             gfx.Clear(Color.Black);
-            //Draw tetris blocks
-            for (var x = 0; x < 12; x++)
-            {
-                for (var y = 0; y < 16; y++)
-                {
-                    if (!tetrisRenderBlocks[x, y].Active) continue;
 
-                    var drawColor = tetrisRenderBlocks[x, y].Color;
-                    var drawRect = new Rectangle(x*_blockSize+2,y*_blockSize+2,38,38);
-                    gfx.FillRectangle(new SolidBrush(drawColor), drawRect);
-                    gfx.DrawRectangle(new Pen(Dim(drawColor),2), drawRect);
-                }
-            }
-            
+            //Draw the main block space
+            RenderBlocksAndFrame(gfx, tetrisRenderBlocks, mainRect);
+
+            //Draw snapshot of next piece
+            RenderBlocksAndFrame(gfx, nextPieceRenderBlocks, nextPieceRect);
 
             //Draw Game Over indicator if required, otherwise draw score
             if (gameOver)
@@ -63,9 +55,36 @@ namespace PlainTetris
             _currentFps++;
         }
 
+        private static void RenderBlocksAndFrame(Graphics gfx, TetrisRenderBlock[,] tetrisRenderBlocks, Rectangle renderRect)
+        {
+            //Calculate dimensions
+            var lengthX = tetrisRenderBlocks.GetLength(0);
+            var lengthY = tetrisRenderBlocks.GetLength(1);
+
+            //Calculate block size
+            var blockSize = renderRect.Width / lengthX;
+
+            //Draw tetris blocks
+            for (var x = 0; x < lengthX; x++)
+            {
+                for (var y = 0; y < lengthY; y++)
+                {
+                    if (!tetrisRenderBlocks[x, y].Active) continue;
+
+                    var drawColor = tetrisRenderBlocks[x, y].Color;
+                    var drawRect = new Rectangle(renderRect.X + x * blockSize + 2, renderRect.Y + y * blockSize + 2, blockSize - 2, blockSize - 2);
+                    gfx.FillRectangle(new SolidBrush(drawColor), drawRect);
+                    gfx.DrawRectangle(new Pen(Dim(drawColor), 2), drawRect);
+                }
+            }
+
+            //Draw frame
+            gfx.DrawRectangle(new Pen(Color.Gray, 5), renderRect);
+        }
+
         private static Color Dim(Color color)
         {
-            return Color.FromArgb(color.A,color.R/2,color.G/2,color.B/2);
+            return Color.FromArgb(color.A, color.R / 2, color.G / 2, color.B / 2);
         }
     }
 }
